@@ -51,6 +51,13 @@ function createSection(
  * Initializes the main container, header, and footer of the dashboard.
  */
 function initializeLayout() {
+
+  // Remove the old container if any.
+  const oldContainer = document.querySelector('.container');
+  if (oldContainer) {
+    oldContainer.remove();
+  }
+
   const container = document.createElement('div');
   container.className = 'container';
 
@@ -59,6 +66,29 @@ function initializeLayout() {
   const h1 = document.createElement('h1');
   h1.textContent = 'GranaBox';
   header.appendChild(h1);
+
+  // Get user info and add to header
+  displayLoggedUserName().then(userData => {
+    const userInfoDiv = document.createElement("div");
+    userInfoDiv.className = "user-info";
+
+    const userName = document.createElement("span");
+    userName.textContent = userData.name || "Usuário";
+
+    const logoutButton = document.createElement("button");
+    logoutButton.textContent = "Sair";
+    logoutButton.className = "logout-btn";
+    logoutButton.onclick = () => {
+      localStorage.removeItem("auth_token");
+      window.location.reload();
+    };
+
+    userInfoDiv.appendChild(userName);
+    userInfoDiv.appendChild(logoutButton);
+    header.appendChild(userInfoDiv);
+  }).catch(error => {
+    console.error("Error getting user information:", error);
+  });
 
   container.appendChild(header);
 
@@ -73,7 +103,7 @@ function initializeLayout() {
   container.appendChild(footer);
 
   // Append the entire container to the body
-  document.body.appendChild(container);
+  document.getElementById('main-content').appendChild(container);
 
   // Initialize the dashboard sections
   initializeDashboard();

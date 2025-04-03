@@ -5,6 +5,14 @@
 const API_URL = 'http://127.0.0.1:5000';
 
 /**
+ * Adds Authorization header with JWT token to request.
+ */
+function getAuthHeaders() {
+  const token = localStorage.getItem('auth_token');
+  return { 'Authorization': `Bearer ${token}` };
+}
+
+/**
  * Creates a new label in the backend.
  * @param {string} labelName - The name of the label to be created.
  * @param {boolean} isDefault - Indicates if the label is a default label.
@@ -16,6 +24,7 @@ async function createLabel(labelName, isDefault = false) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...getAuthHeaders(),
       },
       body: new URLSearchParams({
         name: labelName,
@@ -49,6 +58,7 @@ async function createItem(itemData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...getAuthHeaders(),
       },
       body: new URLSearchParams(itemData),
     });
@@ -78,6 +88,7 @@ async function createRecurringItem(itemData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...getAuthHeaders(),
       },
       body: new URLSearchParams({
         label_id: itemData.label_id,
@@ -109,7 +120,9 @@ async function createRecurringItem(itemData) {
  */
 async function fetchLabels() {
   try {
-    const response = await fetch(`${API_URL}/labels`);
+    const response = await fetch(`${API_URL}/labels`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch labels from the backend.');
     }
@@ -127,7 +140,9 @@ async function fetchLabels() {
  */
 async function fetchItems() {
   try {
-    const response = await fetch(`${API_URL}/items`);
+    const response = await fetch(`${API_URL}/items`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch items from the backend.');
     }
@@ -146,7 +161,9 @@ async function fetchItems() {
  */
 async function fetchItemById(itemId) {
   try {
-    const response = await fetch(`${API_URL}/item?id=${itemId}`);
+    const response = await fetch(`${API_URL}/item?id=${itemId}`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch item from the backend.');
     }
@@ -180,6 +197,7 @@ async function fetchItemsByDate(year, month, type = '') {
     const response = await fetch(url, {
       headers: {
         TimeZone: userTimeZone, // Add the TimeZone header
+        ...getAuthHeaders(), 
       },
     });
     if (!response.ok) {
@@ -199,7 +217,9 @@ async function fetchItemsByDate(year, month, type = '') {
  */
 async function fetchAvailableYears() {
   try {
-    const response = await fetch(`${API_URL}/items/years`);
+    const response = await fetch(`${API_URL}/items/years`, {
+      headers: getAuthHeaders(),
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch available years');
     }
@@ -234,7 +254,9 @@ async function fetchFinancialOverview(year, month) {
     url.searchParams.append('year', year);
     url.searchParams.append('month', month);
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch financial overview from the backend.');
@@ -260,6 +282,7 @@ async function updateItemStatus(itemId, newStatus) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...getAuthHeaders(),
       },
       body: new URLSearchParams({
         id: itemId,
@@ -293,6 +316,7 @@ async function updateItem(itemId, itemData) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...getAuthHeaders(),
       },
       body: new URLSearchParams({ id: itemId, ...itemData }),
     });
@@ -323,6 +347,7 @@ async function updateRecurringItem(itemId, itemData) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        ...getAuthHeaders(),
       },
       body: new URLSearchParams({
         id: itemId,
@@ -357,6 +382,7 @@ async function deleteItem(itemId) {
   try {
     const response = await fetch(`${API_URL}/item?id=${itemId}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -380,6 +406,7 @@ async function deleteRecurringItem(itemId) {
   try {
     const response = await fetch(`${API_URL}/item/recurring?id=${itemId}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -391,5 +418,24 @@ async function deleteRecurringItem(itemId) {
   } catch (error) {
     console.error('Error deleting recurring item:', error);
     return null;
+  }
+}
+
+/**
+ * Fetches the logged user name and email from the backend.
+ */
+async function displayLoggedUserName() {
+  try {
+    const response = await fetch(`${API_URL}/me`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch user info");
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error loading user info:", error);
+    return { name: "Usuário", email: "" }; // fallback
   }
 }

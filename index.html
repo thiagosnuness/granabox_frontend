@@ -1,26 +1,93 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Budget Dashboard to manage your personal finances"
-    />
-    <meta
-      name="keywords"
-      content="budget, finance, dashboard, personal finance, expense tracking"
-    />
-    <meta name="author" content="Thiago Nunes" />
-    <title>GranaBox</title>
-    <link rel="stylesheet" href="styles/styles.css" />
-  </head>
-  <body></body>
-  <script src="scripts/routeRequests.js"></script>
-  <script src="scripts/dashboardBuilder.js"></script>
-  <script src="scripts/dragAndDrop.js"></script>
-  <script src="scripts/dashboardRenderer.js"></script>
-  <script src="scripts/dateUtils.js"></script>
-  <script src="scripts/formModal.js"></script>
-  <script src="scripts/main.js"></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GranaBox</title>
+  <script>
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'styles/styles.css?v=' + new Date().getTime();
+    document.head.appendChild(link);
+  </script>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+</head>
+<body>
+  
+  <div id="loading" class="loading">
+    <p>Carregando GranaBox...</p>
+  </div>
+  
+  <div id="main-content" style="display:none;"></div>
+
+  <script>
+    let auth0Client = null;
+
+    window.onload = async () => {
+      const res = await fetch('http://127.0.0.1:5000/auth-config');
+      const config = await res.json();
+
+      auth0Client = await auth0.createAuth0Client({
+        domain: config.domain,
+        clientId: config.clientId,
+        authorizationParams: {
+          redirect_uri: window.location.origin + '/index.html',
+          prompt: "login",
+          audience: config.audience,
+          scope: 'openid profile email',
+        }
+      });
+
+      const query = window.location.search;
+      if (query.includes("code=") && query.includes("state=")) {
+        await auth0Client.handleRedirectCallback();
+        window.history.replaceState({}, document.title, "/index.html");
+      }
+
+      const isAuthenticated = await auth0Client.isAuthenticated();
+
+      if (isAuthenticated) {
+        try {
+          const token = await auth0Client.getTokenSilently();
+          localStorage.setItem("auth_token", token);
+        
+          document.getElementById("loading").style.display = 'none';
+          document.getElementById("main-content").style.display = 'block';
+
+          const scripts = [
+            "scripts/routeRequests.js",
+            "scripts/dashboardBuilder.js",
+            "scripts/dragAndDrop.js",
+            "scripts/dashboardRenderer.js",
+            "scripts/dateUtils.js",
+            "scripts/formModal.js",
+            "scripts/main.js"
+          ];
+
+          const version = new Date().getTime();
+          let loadedCount = 0;
+          scripts.forEach((src, index) => {
+            const script = document.createElement("script");
+            script.src = `${src}?v=${version}`;
+            script.onload = () => {
+              loadedCount++;
+              if (loadedCount === scripts.length) {
+              
+                const event = new Event("DOMContentLoaded");
+                document.dispatchEvent(event);
+              }
+            };
+            document.body.appendChild(script);
+          });
+
+        } catch (err) {
+          console.error("Failed to get token silently, redirecting to login...", err);
+          await auth0Client.loginWithRedirect();
+        }
+      } else {
+        await auth0Client.loginWithRedirect();
+      }
+    };
+  </script>
+</body>
 </html>

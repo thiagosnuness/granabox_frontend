@@ -102,5 +102,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   waitForSelectorsToBeReady();
+  displayLoggedUserName();
   showWelcomeModal();
 });

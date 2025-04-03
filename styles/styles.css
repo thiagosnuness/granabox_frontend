@@ -58,6 +58,11 @@ body {
   background-attachment: fixed;
 }
 
+/* Loading */
+.loading p {
+  font-size: var(--base-font-size);
+}
+
 /* Main container to center content */
 .container {
   max-width: 1200px;
@@ -361,6 +366,29 @@ header h1 {
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
+}
+
+/*User Info*/
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: var(--default-margin);
+}
+
+.user-info span {
+  margin-right: var(--default-margin);
+  font-weight: bold;
+  color: var(--primary-text-color);
+}
+
+.logout-btn {
+  padding: 5px 10px;
+  background-color: var(--button-primary);
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
 }
 
 /* Footer styling */
