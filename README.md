@@ -68,7 +68,7 @@ AUTH0_CLIENT_ID=your-auth0-client-id
 AUTH0_AUDIENCE=your-auth0-api-audience
 ```
 
-**Note:** The frontend does **not** require its own `.env` file with Auth0 credentials.
+> **Note:** The frontend does **not** require its own `.env` file with Auth0 credentials.
 
 ### Steps
 
